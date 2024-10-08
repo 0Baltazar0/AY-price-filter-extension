@@ -1,0 +1,26 @@
+{
+  "manifest_version": 3,
+  "name": "Your Extension",
+  "version": "1.0",
+  "description": "A Chrome Extension with a bundled landing page",
+  "options_page": "landing.html",
+  "background": {
+    "service_worker": "js/service-worker.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["js/sample.js"]
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "permissions": ["scripting", "storage", "contextMenus", "tabs"],
+  "icons": {
+    "16": "images/icons/icon16.png",
+    "32": "images/icons/icon32.png",
+    "48": "images/icons/icon48.png",
+    "128": "images/icons/icon128.png"
+  }
+}

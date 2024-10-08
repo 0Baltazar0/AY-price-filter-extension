@@ -10,11 +10,12 @@ export function storageFunction(syncCallBack: (data: callbackData) => void) {
       const data = SyncStorageMessage.parse(msg);
       if (data.action == "sync") syncCallBack(data);
     } catch (error) {
-      console.log("Storage Function error", error);
+      console.log("Storage Function error", error, msg);
     }
   });
   return {
     set: (data: callbackData) => {
+      console.log({ ...data, action: "set" });
       channel.postMessage({ ...data, action: "set" });
     },
     get: (data: Omit<callbackData, "data">) => {

@@ -1,7 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import "./index.css";
-import App from "./popup/app";
+import App from "./app";
 const entry = document.getElementById("main");
 if (entry) {
   const root = ReactDOM.createRoot(entry);

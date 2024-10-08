@@ -7,8 +7,17 @@ function logChange(msg: callbackData) {
 }
 let { set } = storageFunction(logChange);
 function injectWindow() {
+  console.log("inject started");
   (window as any).storageSetter = (data: any) => {
     set({ field: "windowVariable", data });
   };
+  const input = document.createElement("input");
+  input.addEventListener("change", (event) => {
+    set({ field: "windowVariable", data: (event as any).target.value });
+  });
+  input.id = "injectedInput";
+  document.body.appendChild(input);
+  console.log(window, (window as any).storageSetter);
 }
-injectWindow();
+console.log("Script loaded");
+window.addEventListener("load", injectWindow);
