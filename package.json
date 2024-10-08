@@ -1,10 +1,18 @@
 {
   "scripts": {
-    "build": ""
+    "build": "npm-run-all --parallel build:*",
+    "build:popup": "esbuild src/popup.tsx --bundle --outfile=dist/js/popup.js",
+    "build:background": "esbuild src/background.ts --bundle --outfile=dist/js/background.js",
+    "build:script": "esbuild src/scripts/sample.ts --bundle --outfile=dist/js/sample.js",
+    "build:popup-tailwind": "npx tailwindcss -i ./src/popup/popup.css -o ./dist/css/output.css"
   },
   "dependencies": {
+    "@types/chrome": "^0.0.277",
+    "@types/react-dom": "^18.3.0",
     "esbuild": "^0.24.0",
+    "npm-run-all": "^4.1.5",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "zod": "^3.23.8"
   }
 }
