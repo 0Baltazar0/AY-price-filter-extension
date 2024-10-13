@@ -1,6 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import App from "./app";
+import App from "../landing/app";
 const entry = document.getElementById("main");
 if (entry) {
   const root = ReactDOM.createRoot(entry);

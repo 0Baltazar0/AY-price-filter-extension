@@ -1,45 +1,180 @@
 import React, { useEffect, useState } from "react";
 import { storageFunction } from "@/shared/storage-comms";
+import { CheckBox } from "@/shared/components/checkbox";
+
+// keys =
+// AYO_ITEM_SELECTOR
+// AYO_DELETE
+// AYO_REMOVE_NO_LOWEST
+// AYO_DO_RUN
+// AY_ITEM_SELECTOR
+// AY_INSPIRATION_SELECTOR
+// AY_DELETE
+// AY_DO_RUN
+// AY_INSPIRATION_REMOVE
+// AY_REMOVE_NO_LOWEST
+type ActiveKeys = {
+  AYO_ITEM_SELECTOR: string;
+  AYO_DELETE: boolean;
+  AYO_REMOVE_NO_LOWEST: boolean;
+  AYO_DO_RUN: boolean;
+  AY_ITEM_SELECTOR: string;
+  AY_INSPIRATION_SELECTOR: string;
+  AY_DELETE: boolean;
+  AY_DO_RUN: boolean;
+  AY_INSPIRATION_REMOVE: boolean;
+  AY_REMOVE_NO_LOWEST: boolean;
+};
+const ActiveKeysDict = {
+  AYO_ITEM_SELECTOR: true,
+  AYO_DELETE: true,
+  AYO_REMOVE_NO_LOWEST: true,
+  AYO_DO_RUN: true,
+  AY_ITEM_SELECTOR: true,
+  AY_INSPIRATION_SELECTOR: true,
+  AY_DELETE: true,
+  AY_DO_RUN: true,
+  AY_INSPIRATION_REMOVE: true,
+  AY_REMOVE_NO_LOWEST: true,
+};
+
+function onChanged(changes: { [key: string]: chrome.storage.StorageChange }) {
+  const data: Partial<ActiveKeys> = {};
+  Object.keys(ActiveKeysDict).forEach((key) => {
+    if (key in changes) {
+      data[key as keyof ActiveKeys] = changes[key].newValue;
+    }
+  });
+  return data;
+}
+
+function applyFilter(old: Partial<ActiveKeys>, new_: Partial<ActiveKeys>) {
+  const data = { ...old };
+  if (
+    "AYO_ITEM_SELECTOR" in new_ &&
+    typeof new_["AYO_ITEM_SELECTOR"] == "string"
+  ) {
+    data["AYO_ITEM_SELECTOR"] = new_["AYO_ITEM_SELECTOR"];
+  }
+  if ("AYO_DELETE" in new_ && typeof new_["AYO_DELETE"] == "boolean") {
+    data["AYO_DELETE"] = new_["AYO_DELETE"];
+  }
+  if (
+    "AYO_REMOVE_NO_LOWEST" in new_ &&
+    typeof new_["AYO_REMOVE_NO_LOWEST"] == "boolean"
+  ) {
+    data["AYO_REMOVE_NO_LOWEST"] = new_["AYO_REMOVE_NO_LOWEST"];
+  }
+  if ("AYO_DO_RUN" in new_ && typeof new_["AYO_DO_RUN"] == "boolean") {
+    data["AYO_DO_RUN"] = new_["AYO_DO_RUN"];
+  }
+  if (
+    "AY_ITEM_SELECTOR" in new_ &&
+    typeof new_["AY_ITEM_SELECTOR"] == "string"
+  ) {
+    data["AY_ITEM_SELECTOR"] = new_["AY_ITEM_SELECTOR"];
+  }
+  if (
+    "AY_INSPIRATION_SELECTOR" in new_ &&
+    typeof new_["AY_INSPIRATION_SELECTOR"] == "string"
+  ) {
+    data["AY_INSPIRATION_SELECTOR"] = new_["AY_INSPIRATION_SELECTOR"];
+  }
+  if ("AY_DELETE" in new_ && typeof new_["AY_DELETE"] == "boolean") {
+    data["AY_DELETE"] = new_["AY_DELETE"];
+  }
+  if ("AY_DO_RUN" in new_ && typeof new_["AY_DO_RUN"] == "boolean") {
+    data["AY_DO_RUN"] = new_["AY_DO_RUN"];
+  }
+  if (
+    "AY_INSPIRATION_REMOVE" in new_ &&
+    typeof new_["AY_INSPIRATION_REMOVE"] == "boolean"
+  ) {
+    data["AY_INSPIRATION_REMOVE"] = new_["AY_INSPIRATION_REMOVE"];
+  }
+  if (
+    "AY_REMOVE_NO_LOWEST" in new_ &&
+    typeof new_["AY_REMOVE_NO_LOWEST"] == "boolean"
+  ) {
+    data["AY_REMOVE_NO_LOWEST"] = new_["AY_REMOVE_NO_LOWEST"];
+  }
+  return data;
+}
 
 function App() {
-  const [data, setData] = useState<undefined | any>(undefined);
-  const [strict, setStrict] = useState<boolean>(false);
-
-  const [req, _set] = useState(
-    storageFunction((data) => {
-      if (data.field == "windowVariable") {
-        setData(() => data.data);
-      }
-      if (data.field == "strict") {
-        setStrict(() => data.data);
-      }
-    })
-  );
+  const [data, setData] = useState<Partial<ActiveKeys>>({});
   useEffect(() => {
-    req.get({ field: "activate" });
-    req.get({ field: "strict" });
+    chrome.storage.local.get(ActiveKeysDict).then((res) => {
+      setData((old) => applyFilter(old, res));
+    });
+    function change(changes: { [key: string]: chrome.storage.StorageChange }) {
+      setData((old) => applyFilter(old, onChanged(changes)));
+    }
+    chrome.storage.local.onChanged.addListener(change);
+    return () => {
+      chrome.storage.local.onChanged.removeListener(change);
+    };
   }, []);
   return (
     <div className="App bg-slate-500 w-60 h-fit">
-      <header className="App-header">
-        <h1>Welcome to My React App</h1>
-        <p>This is template for a landing page</p>
-        <p>The last windowVariable is: {data}</p>
-      </header>
-      <label className="inline-flex items-center cursor-pointer">
-        <input
-          onChange={() =>
-            req.set({ field: "strict", data: Boolean(strict) ? false : true })
-          }
-          type="checkbox"
-          checked={strict}
-          className="sr-only peer"
-        />
-        <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-        <span className="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">
-          Is Strict
-        </span>
-      </label>
+      <h1>Extension Settings</h1>
+      <h2>Run this extension:</h2>
+      <CheckBox
+        onChange={() => {
+          chrome.storage.local.set({ AY_DO_RUN: !data["AY_DO_RUN"] });
+        }}
+        checked={data["AY_DO_RUN"]}
+        label="About You"
+      ></CheckBox>
+      <CheckBox
+        onChange={() => {
+          chrome.storage.local.set({ AY_DO_RUN: !data["AYO_DO_RUN"] });
+        }}
+        checked={data["AYO_DO_RUN"]}
+        label="About You Outlet"
+      ></CheckBox>
+      <h2>Delete Entries (or just hide them)</h2>
+      <CheckBox
+        onChange={() => {
+          chrome.storage.local.set({ AY_DO_RUN: !data["AY_DELETE"] });
+        }}
+        checked={data["AY_DELETE"]}
+        label="About You"
+      ></CheckBox>
+      <CheckBox
+        onChange={() => {
+          chrome.storage.local.set({ AY_DO_RUN: !data["AYO_DELETE"] });
+        }}
+        checked={data["AYO_DELETE"]}
+        label="About You Outlet"
+      ></CheckBox>
+      <h2>Apply to new items</h2>
+      <CheckBox
+        onChange={() => {
+          chrome.storage.local.set({ AY_DO_RUN: !data["AY_REMOVE_NO_LOWEST"] });
+        }}
+        checked={data["AY_REMOVE_NO_LOWEST"]}
+        label="About You"
+      ></CheckBox>
+      <CheckBox
+        onChange={() => {
+          chrome.storage.local.set({
+            AY_DO_RUN: !data["AYO_REMOVE_NO_LOWEST"],
+          });
+        }}
+        checked={data["AYO_REMOVE_NO_LOWEST"]}
+        label="About You Outlet"
+      ></CheckBox>
+      <h2>Remove "Inspiration" Boxes</h2>
+      <CheckBox
+        onChange={() => {
+          chrome.storage.local.set({
+            AY_DO_RUN: !data["AY_INSPIRATION_REMOVE"],
+          });
+        }}
+        checked={data["AY_INSPIRATION_REMOVE"]}
+        label="About You"
+      ></CheckBox>
     </div>
   );
 }

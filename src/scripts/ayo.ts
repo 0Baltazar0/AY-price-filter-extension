@@ -1,78 +1,98 @@
-import { callbackData, storageFunction } from "@/shared/storage-comms";
-let isActive = false;
-let isStrict = false;
+import { fetchItems, ItemController } from "./entryController";
+import { ayoIsBad, ayoLowest } from "./ayo_utils";
 
-const observer = new MutationObserver(filter);
-function onStoreChange(msg: callbackData) {
-  console.log(`Storage message received`, msg, "activate", isActive);
-  if (msg.field == "strict") {
-    isStrict = Boolean(msg.data);
+const ITEM_SELECTOR = "article";
+
+export class Script {
+  private ITEM_SELECTOR = ITEM_SELECTOR;
+  private DO_DELETE: boolean = false;
+  private DO_RUN: boolean | undefined = undefined;
+  private REMOVE_NO_LOWEST: boolean = false;
+  observer: MutationObserver;
+  constructor() {
+    this.observer = new MutationObserver(this.execute.bind(this));
+    chrome.storage.local
+      .get({
+        AY_ITEM_SELECTOR: true,
+        AY_DELETE: true,
+        AY_DO_RUN: true,
+        REMOVE_NO_LOWEST: true,
+      })
+      .then(this.updateStorage);
+
+    chrome.storage.local.onChanged.addListener((ch) => {
+      this.updateStorage(
+        Object.keys(ch).reduce((res, key) => {
+          res[key] = ch[key].newValue;
+          return res;
+        }, {} as { [key: string]: any })
+      );
+    });
   }
-  if (msg.field == "activate") {
-    if (Boolean(msg.data) != isActive) {
-      if (Boolean(msg.data)) {
-        console.log("Observe Start");
-        observer.observe(document.body, { childList: true, subtree: true });
-      } else {
-        console.log("Observe Stop");
-        observer.disconnect();
+  updateStorage(data: { [key: string]: any }) {
+    Object.keys(data).forEach((key) => {
+      switch (key) {
+        case "AYO_ITEM_SELECTOR":
+          if (data[key]) {
+            this.ITEM_SELECTOR = data[key];
+          }
+          break;
+
+        case "AYO_DELETE":
+          if (typeof data[key] == "boolean") {
+            this.DO_DELETE = data[key];
+          }
+          break;
+
+        case "AYO_REMOVE_NO_LOWEST":
+          if (typeof data[key] == "boolean") {
+            this.REMOVE_NO_LOWEST = data[key];
+          }
+          break;
+        case "AYO_DO_RUN":
+          if (typeof data[key] == "boolean") {
+            this.DO_RUN = data[key];
+            if (this.DO_RUN) {
+              this.observer.disconnect();
+            } else {
+              this.observer.observe(document.body, {
+                childList: true,
+                subtree: true,
+              });
+            }
+          }
       }
-      isActive = Boolean(msg.data);
-    }
+    });
   }
-}
-let { get } = storageFunction(onStoreChange);
-
-function getBlocks(): NodeListOf<HTMLLIElement> {
-  return document.querySelectorAll("article") as NodeListOf<HTMLLIElement>;
-}
-function finalPrice(target: HTMLLIElement) {
-  const fp = target.querySelector(".bg-yellow")?.innerHTML;
-  return fp ? Number(fp.replace(/\D/g, "")) : undefined;
-}
-// const lpre = /"Legjobb ár az elmúlt 30 napban\*\*: ([\d\.]+) Ft ([\+\-]?[\d]+)"/
-function lowest30(target: HTMLLIElement): [number, number] | undefined {
-  const lp = target.querySelector(".flex.flex-col > div+div")?.innerHTML;
-  if (lp) {
-    return [
-      Number(lp.split("Ft")[0].replace(/\D/g, "")),
-      Number(lp.split("Ft")[1].replace(/\D/g, "")),
-    ];
-  }
-  return undefined;
-}
-function isBad(target: HTMLLIElement): boolean {
-  const low = finalPrice(target);
-  const change = lowest30(target);
-  console.log(low, change);
-  if (!low || !change) return false;
-  if (low < change[0]) return false;
-  console.log("Yeeting", low, change);
-  return true;
-}
-function filter() {
-  const target_blocks = getBlocks();
-  console.log("Filtering", target_blocks.length);
-  target_blocks.forEach((li, index) => {
-    if (index == 0) return;
-    if (isBad(li)) {
-      li.remove();
-      // li.style.display = "none";
-    } else {
-      if (isStrict && undefined == lowest30(li)) li.remove();
-    }
-    const remains = getBlocks();
+  filterItems(items: ItemController[]) {
+    items.forEach((li, index) => {
+      if (ayoIsBad(li)) {
+        li.fire = true;
+      } else {
+        if (this.REMOVE_NO_LOWEST && ayoLowest(li) == undefined) li.fire = true;
+      }
+    });
+    const remains = items.filter((item) => item.fire);
     if (remains.length == 1) {
-      remains[0].scrollIntoView({ behavior: "smooth" });
-    } else {
-      if (isBad(remains[0]) || (isStrict && lowest30(remains[0]) == undefined))
-        remains[0].remove();
+      remains[0].fire = false;
     }
-  });
+    items.forEach((item) => item.execute(this.DO_DELETE ? "delete" : "hide"));
+    const lastItems = items.filter((item) => item.fire);
+    if (lastItems.length == 1) {
+      lastItems[0].element.scrollIntoView({ behavior: "smooth" });
+    }
+  }
+
+  execute() {
+    if (this.DO_RUN) {
+      const entries = fetchItems(this.ITEM_SELECTOR);
+      this.filterItems(entries);
+    }
+  }
 }
 
 function main() {
-  get({ field: "activate" });
+  new Script();
 }
 
 window.addEventListener("load", main);

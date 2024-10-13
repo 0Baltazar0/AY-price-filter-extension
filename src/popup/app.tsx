@@ -19,7 +19,7 @@ function App() {
     req.get({ field: "strict" });
   }, []);
   return (
-    <div className="App bg-slate-500 w-60 h-fit">
+    <div className="App bg-slate-500">
       <header className="App-header">
         <h1>Pretty Stupid filter</h1>
         <p>This an example for a popup.</p>
