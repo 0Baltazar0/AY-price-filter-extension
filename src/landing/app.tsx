@@ -26,16 +26,16 @@ type ActiveKeys = {
   AY_REMOVE_NO_LOWEST: boolean;
 };
 const ActiveKeysDict = {
-  AYO_ITEM_SELECTOR: true,
-  AYO_DELETE: true,
-  AYO_REMOVE_NO_LOWEST: true,
+  AYO_ITEM_SELECTOR: undefined,
+  AYO_DELETE: false,
+  AYO_REMOVE_NO_LOWEST: false,
   AYO_DO_RUN: true,
-  AY_ITEM_SELECTOR: true,
-  AY_INSPIRATION_SELECTOR: true,
-  AY_DELETE: true,
+  AY_ITEM_SELECTOR: undefined,
+  AY_INSPIRATION_SELECTOR: undefined,
+  AY_DELETE: false,
   AY_DO_RUN: true,
-  AY_INSPIRATION_REMOVE: true,
-  AY_REMOVE_NO_LOWEST: true,
+  AY_INSPIRATION_REMOVE: false,
+  AY_REMOVE_NO_LOWEST: false,
 };
 
 function onChanged(changes: { [key: string]: chrome.storage.StorageChange }) {
@@ -102,7 +102,7 @@ function applyFilter(old: Partial<ActiveKeys>, new_: Partial<ActiveKeys>) {
 }
 
 function App() {
-  const [data, setData] = useState<Partial<ActiveKeys>>({});
+  const [data, setData] = useState<Partial<ActiveKeys>>(ActiveKeysDict);
   useEffect(() => {
     chrome.storage.local.get(ActiveKeysDict).then((res) => {
       setData((old) => applyFilter(old, res));
@@ -128,7 +128,7 @@ function App() {
       ></CheckBox>
       <CheckBox
         onChange={() => {
-          chrome.storage.local.set({ AY_DO_RUN: !data["AYO_DO_RUN"] });
+          chrome.storage.local.set({ AYO_DO_RUN: !data["AYO_DO_RUN"] });
         }}
         checked={data["AYO_DO_RUN"]}
         label="About You Outlet"
@@ -136,14 +136,14 @@ function App() {
       <h2>Delete Entries (or just hide them)</h2>
       <CheckBox
         onChange={() => {
-          chrome.storage.local.set({ AY_DO_RUN: !data["AY_DELETE"] });
+          chrome.storage.local.set({ AY_DELETE: !data["AY_DELETE"] });
         }}
         checked={data["AY_DELETE"]}
         label="About You"
       ></CheckBox>
       <CheckBox
         onChange={() => {
-          chrome.storage.local.set({ AY_DO_RUN: !data["AYO_DELETE"] });
+          chrome.storage.local.set({ AYO_DELETE: !data["AYO_DELETE"] });
         }}
         checked={data["AYO_DELETE"]}
         label="About You Outlet"
@@ -151,7 +151,9 @@ function App() {
       <h2>Apply to new items</h2>
       <CheckBox
         onChange={() => {
-          chrome.storage.local.set({ AY_DO_RUN: !data["AY_REMOVE_NO_LOWEST"] });
+          chrome.storage.local.set({
+            AY_REMOVE_NO_LOWEST: !data["AY_REMOVE_NO_LOWEST"],
+          });
         }}
         checked={data["AY_REMOVE_NO_LOWEST"]}
         label="About You"
@@ -159,7 +161,7 @@ function App() {
       <CheckBox
         onChange={() => {
           chrome.storage.local.set({
-            AY_DO_RUN: !data["AYO_REMOVE_NO_LOWEST"],
+            AYO_REMOVE_NO_LOWEST: !data["AYO_REMOVE_NO_LOWEST"],
           });
         }}
         checked={data["AYO_REMOVE_NO_LOWEST"]}
@@ -169,7 +171,7 @@ function App() {
       <CheckBox
         onChange={() => {
           chrome.storage.local.set({
-            AY_DO_RUN: !data["AY_INSPIRATION_REMOVE"],
+            AY_INSPIRATION_REMOVE: !data["AY_INSPIRATION_REMOVE"],
           });
         }}
         checked={data["AY_INSPIRATION_REMOVE"]}

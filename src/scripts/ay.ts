@@ -16,14 +16,14 @@ export class Script {
     this.observer = new MutationObserver(this.execute.bind(this));
     chrome.storage.local
       .get({
-        AY_ITEM_SELECTOR: true,
-        AY_INSPIRATION_SELECTOR: true,
-        AY_DELETE: true,
+        AY_ITEM_SELECTOR: ITEM_SELECTOR,
+        AY_INSPIRATION_SELECTOR: INSPIRATION_SELECTOR,
+        AY_DELETE: false,
         AY_DO_RUN: true,
-        AY_INSPIRATION_REMOVE: true,
-        AY_REMOVE_NO_LOWEST: true,
+        AY_INSPIRATION_REMOVE: false,
+        AY_REMOVE_NO_LOWEST: false,
       })
-      .then(this.updateStorage);
+      .then(this.updateStorage.bind(this));
 
     chrome.storage.local.onChanged.addListener((ch) => {
       this.updateStorage(
@@ -65,7 +65,7 @@ export class Script {
         case "AY_DO_RUN":
           if (typeof data[key] == "boolean") {
             this.DO_RUN = data[key];
-            if (this.DO_RUN) {
+            if (this.DO_RUN == false) {
               this.observer.disconnect();
             } else {
               this.observer.observe(document.body, {

@@ -8,7 +8,7 @@ export function ayoLowest(
   target: ItemController
 ): [number, number] | undefined {
   const lp = target.element.querySelector(
-    ".flex.flex-col > div+div"
+    ".flex.flex-col.text-gray-600 > div+div"
   )?.innerHTML;
   if (lp) {
     return [

@@ -13,12 +13,12 @@ export class Script {
     this.observer = new MutationObserver(this.execute.bind(this));
     chrome.storage.local
       .get({
-        AY_ITEM_SELECTOR: true,
-        AY_DELETE: true,
-        AY_DO_RUN: true,
-        REMOVE_NO_LOWEST: true,
+        AYO_ITEM_SELECTOR: ITEM_SELECTOR,
+        AYO_DELETE: false,
+        AYO_DO_RUN: true,
+        AYO_REMOVE_NO_LOWEST: false,
       })
-      .then(this.updateStorage);
+      .then(this.updateStorage.bind(this));
 
     chrome.storage.local.onChanged.addListener((ch) => {
       this.updateStorage(
@@ -30,6 +30,7 @@ export class Script {
     });
   }
   updateStorage(data: { [key: string]: any }) {
+    console.log(data);
     Object.keys(data).forEach((key) => {
       switch (key) {
         case "AYO_ITEM_SELECTOR":
@@ -52,9 +53,11 @@ export class Script {
         case "AYO_DO_RUN":
           if (typeof data[key] == "boolean") {
             this.DO_RUN = data[key];
-            if (this.DO_RUN) {
+            if (this.DO_RUN == false) {
+              console.log("stopping", this);
               this.observer.disconnect();
             } else {
+              console.log("starting", this);
               this.observer.observe(document.body, {
                 childList: true,
                 subtree: true,
