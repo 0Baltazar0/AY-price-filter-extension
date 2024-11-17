@@ -10,6 +10,14 @@ export class Script {
   private REMOVE_NO_LOWEST: boolean = false;
   observer: MutationObserver;
   constructor() {
+    window.addEventListener("popstate", (event) => {
+      console.log("fire");
+      this.DO_RUN = false;
+      setTimeout(() => {
+        this.DO_RUN = true;
+        this.execute();
+      }, 5000);
+    });
     this.observer = new MutationObserver(this.execute.bind(this));
     chrome.storage.local
       .get({
@@ -87,7 +95,11 @@ export class Script {
   }
 
   execute() {
+    setTimeout(() => {
+      this.DO_RUN = true;
+    }, 5000);
     if (this.DO_RUN) {
+      this.DO_RUN = false;
       const entries = fetchItems(this.ITEM_SELECTOR);
       this.filterItems(entries);
     }

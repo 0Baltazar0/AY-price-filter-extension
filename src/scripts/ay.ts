@@ -14,6 +14,14 @@ export class Script {
   observer: MutationObserver;
   constructor() {
     this.observer = new MutationObserver(this.execute.bind(this));
+    window.addEventListener("popstate", (event) => {
+      console.log("fire");
+      this.DO_RUN = false;
+      setTimeout(() => {
+        this.DO_RUN = true;
+        this.execute();
+      }, 5000);
+    });
     chrome.storage.local
       .get({
         AY_ITEM_SELECTOR: ITEM_SELECTOR,
@@ -107,7 +115,11 @@ export class Script {
     });
   }
   execute() {
+    setTimeout(() => {
+      this.DO_RUN = true;
+    }, 5000);
     if (this.DO_RUN) {
+      this.DO_RUN = false;
       const entries = fetchItems(this.ITEM_SELECTOR);
       this.filterItems(entries);
       const banners = fetchItems(this.INSPIRATION_SELECTOR);
