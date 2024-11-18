@@ -11,6 +11,7 @@ export class Script {
   private DO_DELETE: boolean = false;
   private DO_RUN: boolean | undefined = undefined;
   private REMOVE_NO_LOWEST: boolean = false;
+  private TOLERANCE = 0;
   observer: MutationObserver;
   constructor() {
     this.observer = new MutationObserver(this.execute.bind(this));
@@ -30,6 +31,7 @@ export class Script {
         AY_DO_RUN: true,
         AY_INSPIRATION_REMOVE: false,
         AY_REMOVE_NO_LOWEST: false,
+        AY_TOLERANCE: 0,
       })
       .then(this.updateStorage.bind(this));
 
@@ -60,6 +62,11 @@ export class Script {
             this.DO_DELETE = data[key];
           }
           break;
+        case "AY_TOLERANCE":
+          if (typeof data[key] == "number") {
+            this.TOLERANCE = data[key];
+          }
+          break;
         case "AY_INSPIRATION_REMOVE":
           if (typeof data[key] == "boolean") {
             this.INSPIRATION_REMOVE = data[key];
@@ -87,7 +94,7 @@ export class Script {
   }
   filterItems(items: ItemController[]) {
     items.forEach((li, index) => {
-      if (aYisBad(li)) {
+      if (aYisBad(li, this.TOLERANCE)) {
         li.fire = true;
       } else {
         if (this.REMOVE_NO_LOWEST && AyGetLowest(li) == undefined)

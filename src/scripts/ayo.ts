@@ -8,6 +8,7 @@ export class Script {
   private DO_DELETE: boolean = false;
   private DO_RUN: boolean | undefined = undefined;
   private REMOVE_NO_LOWEST: boolean = false;
+  private TOLERANCE: number = 0;
   observer: MutationObserver;
   constructor() {
     window.addEventListener("popstate", (event) => {
@@ -25,6 +26,7 @@ export class Script {
         AYO_DELETE: false,
         AYO_DO_RUN: true,
         AYO_REMOVE_NO_LOWEST: false,
+        AY_TOLERANCE: 0,
       })
       .then(this.updateStorage.bind(this));
 
@@ -58,6 +60,11 @@ export class Script {
             this.REMOVE_NO_LOWEST = data[key];
           }
           break;
+        case "AYO_TOLERANCE":
+          if (typeof data[key] == "number") {
+            this.TOLERANCE = data[key];
+          }
+          break;
         case "AYO_DO_RUN":
           if (typeof data[key] == "boolean") {
             this.DO_RUN = data[key];
@@ -77,7 +84,7 @@ export class Script {
   }
   filterItems(items: ItemController[]) {
     items.forEach((li, index) => {
-      if (ayoIsBad(li)) {
+      if (ayoIsBad(li, this.TOLERANCE)) {
         li.fire = true;
       } else {
         if (this.REMOVE_NO_LOWEST && ayoLowest(li) == undefined) li.fire = true;

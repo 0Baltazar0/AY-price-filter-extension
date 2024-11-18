@@ -21,10 +21,16 @@ export function AyGetLowest(
   }
   return undefined;
 }
-export function aYisBad(target: ItemController): boolean {
-  const low = ayGetFinalPrice(target);
-  const change = AyGetLowest(target);
-  if (!low || !change) return false;
-  if (low < change[0]) return false;
+export function aYisBad(
+  target: ItemController,
+  tolerance: number = -1
+): boolean {
+  const current = ayGetFinalPrice(target);
+  const lowest = AyGetLowest(target);
+  if (!current || !lowest) return false;
+  if (tolerance >= 0) {
+    return !((current - lowest[0]) / current <= tolerance / 100);
+  }
+  if (current < lowest[0]) return false;
   return true;
 }

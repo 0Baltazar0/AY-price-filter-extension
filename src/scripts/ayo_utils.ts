@@ -18,10 +18,16 @@ export function ayoLowest(
   }
   return undefined;
 }
-export function ayoIsBad(target: ItemController): boolean {
-  const low = ayoFinalPrice(target);
-  const change = ayoLowest(target);
-  if (!low || !change) return false;
-  if (low < change[0]) return false;
+export function ayoIsBad(
+  target: ItemController,
+  tolerance: number = 0
+): boolean {
+  const current = ayoFinalPrice(target);
+  const lowest = ayoLowest(target);
+  if (!current || !lowest) return false;
+  if (tolerance >= 0) {
+    return !((current - lowest[0]) / current <= tolerance / 100);
+  }
+  if (current < lowest[0]) return false;
   return true;
 }

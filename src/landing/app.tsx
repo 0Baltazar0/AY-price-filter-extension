@@ -24,6 +24,8 @@ type ActiveKeys = {
   AY_DO_RUN: boolean;
   AY_INSPIRATION_REMOVE: boolean;
   AY_REMOVE_NO_LOWEST: boolean;
+  AY_TOLERANCE: number;
+  AYO_TOLERANCE: number;
 };
 const ActiveKeysDict = {
   AYO_ITEM_SELECTOR: undefined,
@@ -36,6 +38,8 @@ const ActiveKeysDict = {
   AY_DO_RUN: true,
   AY_INSPIRATION_REMOVE: false,
   AY_REMOVE_NO_LOWEST: false,
+  AY_TOLERANCE: 0,
+  AYO_TOLERANCE: 0,
 };
 
 function onChanged(changes: { [key: string]: chrome.storage.StorageChange }) {
@@ -97,6 +101,12 @@ function applyFilter(old: Partial<ActiveKeys>, new_: Partial<ActiveKeys>) {
     typeof new_["AY_REMOVE_NO_LOWEST"] == "boolean"
   ) {
     data["AY_REMOVE_NO_LOWEST"] = new_["AY_REMOVE_NO_LOWEST"];
+  }
+  if ("AY_TOLERANCE" in new_ && typeof new_["AY_TOLERANCE"] == "number") {
+    data["AY_TOLERANCE"] = new_["AY_TOLERANCE"];
+  }
+  if ("AYO_TOLERANCE" in new_ && typeof new_["AYO_TOLERANCE"] == "number") {
+    data["AYO_TOLERANCE"] = new_["AYO_TOLERANCE"];
   }
   return data;
 }
@@ -177,6 +187,35 @@ function App() {
         checked={data["AY_INSPIRATION_REMOVE"]}
         label="About You"
       ></CheckBox>
+      <h2>Price tolerance in percent</h2>
+      <label htmlFor="">About You</label>
+      <input
+        type="number"
+        step={1}
+        min={0}
+        value={data["AY_TOLERANCE"]}
+        onChange={(e) => {
+          chrome.storage.local.set({
+            AY_TOLERANCE: Number(e.target.value),
+          });
+        }}
+        name=""
+        id=""
+      />
+      <label htmlFor="">About You Outlet</label>
+      <input
+        type="number"
+        step={1}
+        min={0}
+        value={data["AYO_TOLERANCE"]}
+        onChange={(e) => {
+          chrome.storage.local.set({
+            AYO_TOLERANCE: Number(e.target.value),
+          });
+        }}
+        name=""
+        id=""
+      />
     </div>
   );
 }
